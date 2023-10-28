@@ -131,11 +131,15 @@ class Authentication extends Controller
 
         $validate = Validator::make($request->all(), $validate, $message);
         if ($validate->fails()) {
+            $message = [];
             $arrError = $validate->errors()->getMessages();
             foreach ($arrError as $errorFfield => $value) {
                 $arrError[$errorFfield] = $value[0];
+                $message[] = $value[0];
             }
-            return response()->json($arrError, 400);
+            $response = $arrError;
+            $response['message'] = implode('\n', $message);
+            return response()->json($response, 400);
         }
     }
 }
