@@ -138,7 +138,7 @@ class Authentication extends Controller
                 $message[] = $value[0];
             }
             $response = $arrError;
-            $response['message'] = implode('\n', $message);
+            $response['message'] = implode("\n", $message);
             return response()->json($response, 400);
         }
     }
