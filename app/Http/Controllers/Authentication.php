@@ -37,7 +37,8 @@ class Authentication extends Controller
         } catch (QueryException $e) {
             if ($e->errorInfo[1] == 1062) {
                 $response = [
-                    'email' => 'Email đã tồn tại.'
+                    'email' => 'Email đã tồn tại.',
+                    'message' => 'Email đã tồn tại.',
                 ];
                 $statusCode = 409;
             } else {
