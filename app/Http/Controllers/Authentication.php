@@ -53,39 +53,47 @@ class Authentication extends Controller
 
     public function login(Request $request)
     {
-        $validate = $this->validateRequest($request);
-        if ($validate) return $validate;
+        try {
+            $validate = $this->validateRequest($request);
+            if ($validate) return $validate;
 
-        $user = User::where('email', $request->email)->first();
+            $user = User::where('email', $request->email)->first();
 
-        // var_dump($user);die;
-        if (!$user || !Hash::check($request->password, $user->password)) {
+            // var_dump($user);die;
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                $response = [
+                    'email' => true,
+                    'password' => true,
+                    'message' => 'Email hoặc Mật khẩu không chính xác.',
+                ];
+                $statusCode = 401;
+                return response()->json($response, $statusCode);
+            }
+
+            $token = $user->createToken('authentication');
+            if ($token->plainTextToken) {
+                $response = [
+                    'access_token' => $token->plainTextToken,
+                    'token_type' => 'Bearer',
+                    'message' => 'Đăng nhập thành công',
+                ];
+                $statusCode = 200;
+            } else {
+                $response = [
+                    'message' => 'Đăng nhập thất bại.',
+                ];
+                $statusCode = 500;
+            }
+        } catch (\Exception $error) {
             $response = [
-                'email' => true,
-                'password' => true,
-                'message' => 'Email hoặc Mật khẩu không chính xác.',
-            ];
-            $statusCode = 401;
-            return response()->json($response, $statusCode);
-        }
-        
-        $token = $user->createToken('authentication');
-        if ($token->plainTextToken) {
-            $response = [
-                'token' => $token->plainTextToken,
-                'token_type' => 'Bearer',
-                'message' => 'Đăng nhập thành công',
-            ];
-            $statusCode = 200;
-        } else {
-            $response = [
-                'message' => 'Đăng nhập thất bại.',
+                'message' => 'Error in Login',
+                'error' => $error,
             ];
             $statusCode = 500;
         }
         return response()->json($response, $statusCode);
     }
-    
+
     public function logout()
     {
         $result = auth()->user()->currentAccessToken()->delete();
@@ -124,7 +132,7 @@ class Authentication extends Controller
         $validate = Validator::make($request->all(), $validate, $message);
         if ($validate->fails()) {
             $arrError = $validate->errors()->getMessages();
-            foreach($arrError as $errorFfield => $value) {
+            foreach ($arrError as $errorFfield => $value) {
                 $arrError[$errorFfield] = $value[0];
             }
             return response()->json($arrError, 400);
