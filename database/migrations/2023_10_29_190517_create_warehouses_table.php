@@ -23,18 +23,21 @@ return new class extends Migration
         // Bảng lô hàng
         Schema::create('batches', function (Blueprint $table) {
             $table->id();
+
             $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')
                 ->references('id')
                 ->on('products')
                 ->onUpdate('cascade')
                 ->onDelete('restrict');
+
             $table->unsignedBigInteger('warehouse_id');
             $table->foreign('warehouse_id')
                 ->references('id')
                 ->on('warehouses')
                 ->onUpdate('cascade')
                 ->onDelete('restrict');
+                
             $table->string('serial')->unique()
                 ->nullable()
                 ->default(null);
@@ -56,5 +59,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('warehouses');
+        Schema::dropIfExists('batches');
     }
 };
