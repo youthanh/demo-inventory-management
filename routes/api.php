@@ -2,7 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Authentication;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\WarehouseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,7 +20,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware('auth:sanctum')->delete('/logout', [Authentication::class, 'logout']);
+Route::middleware('auth:sanctum')->delete('/logout', [AuthController::class, 'logout']);
 
-Route::post('/login', [Authentication::class, 'login']);
-Route::post('/register', [Authentication::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+
+Route::middleware('auth:sanctum')->resource('warehouse', WarehouseController::class);
