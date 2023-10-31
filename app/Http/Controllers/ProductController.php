@@ -14,11 +14,10 @@ class ProductController extends Controller
      */
     public function index()
     {
-        var_dump(request()->method());
         $model = new Product;
         $query = $model->query();
         $this->applyQuery($query, $model);
-        $result = $query->simplePaginate(request('per_page', null));
+        $result = $query->paginate(request('per_page', null));
         return response()->json($result, 200);
     }
 
@@ -57,7 +56,16 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        //
+        // Tìm sản phẩm dựa trên ID
+        $product = Product::find($id);
+
+        // Kiểm tra xem sản phẩm có tồn tại không
+        if (!$product) {
+            return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
+        }
+
+        // Trả về thông tin chi tiết của sản phẩm
+        return response()->json($product, 200);
     }
 
     /**
@@ -65,7 +73,22 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $product = Product::find($id);
+
+        if (!$product) {
+            return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
+        }
+
+        $request->validate([
+            'code' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'description' => 'string|nullable',
+            'cost_price' => 'numeric|nullable',
+            'selling_price' => 'numeric|nullable',
+        ]);
+        $product->update($request->all());
+
+        return response()->json(['message' => 'Lưu thành công', 'data' => $product]);
     }
 
     /**
@@ -73,6 +96,18 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Tìm sản phẩm dựa trên ID
+        $product = Product::find($id);
+
+        // Kiểm tra xem sản phẩm có tồn tại không
+        if (!$product) {
+            return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
+        }
+
+        // Xóa sản phẩm
+        $product->delete();
+
+        // Trả về thông báo xóa thành công
+        return response()->json(['message' => 'Xóa thành công'], 200);
     }
 }

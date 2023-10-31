@@ -22,21 +22,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 // Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/test', function (Request $request) {
-    return $request->method();
-});
 Route::middleware('auth:sanctum')->delete('/logout', [AuthController::class, 'logout']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::resource('product-categories', ProductCategoryController::class);
     Route::resource('products', ProductController::class);
-
-    // Route::post('test', function (Request $request) {
-    //     return $request->method();
-    // });
+    Route::post('products/{id}', [ProductController::class, 'update']);
 });
-
-// Route::middleware('auth:sanctum')->post('/test', function (Request $request) {
-//     return $request->method();
-// });
-
