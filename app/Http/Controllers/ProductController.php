@@ -14,7 +14,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        dd(request()->method());
+        var_dump(request()->method());
         $model = new Product;
         $query = $model->query();
         $this->applyQuery($query, $model);
