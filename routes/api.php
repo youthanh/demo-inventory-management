@@ -27,4 +27,8 @@ Route::middleware('auth:sanctum')->delete('/logout', [AuthController::class, 'lo
 Route::middleware('auth:sanctum')->group(function () {
     Route::resource('product-categories', ProductCategoryController::class);
     Route::resource('products', ProductController::class);
+
+    Route::post('test', function (Request $request) {
+        return $request->method();
+    });
 });
