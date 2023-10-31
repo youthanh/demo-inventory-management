@@ -33,6 +33,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // });
 });
 
-Route::middleware('auth:sanctum')->get('/test', function (Request $request) {
+Route::middleware('auth:sanctum')->post('/test', function (Request $request) {
     return $request->method();
 });
