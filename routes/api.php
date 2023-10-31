@@ -22,7 +22,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 // Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', function (Request $request) {
+Route::post('/test', function (Request $request) {
     return $request->method();
 });
 Route::middleware('auth:sanctum')->delete('/logout', [AuthController::class, 'logout']);
