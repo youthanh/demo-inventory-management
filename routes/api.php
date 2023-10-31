@@ -28,7 +28,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('product-categories', ProductCategoryController::class);
     Route::resource('products', ProductController::class);
 
-    Route::post('test', function (Request $request) {
-        return $request->method();
-    });
+    // Route::post('test', function (Request $request) {
+    //     return $request->method();
+    // });
+});
+
+Route::middleware('auth:sanctum')->get('/test', function (Request $request) {
+    return $request->method();
 });
