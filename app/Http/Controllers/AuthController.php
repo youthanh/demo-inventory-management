@@ -9,7 +9,7 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 
-class Authentication extends Controller
+class AuthController extends Controller
 {
     public function register(Request $request)
     {
