@@ -20,8 +20,11 @@ use App\Http\Controllers\ProductController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::post('/login', [AuthController::class, 'login']);
+// Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', function (Request $request) {
+    return $request->method();
+});
 Route::middleware('auth:sanctum')->delete('/logout', [AuthController::class, 'logout']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -36,6 +39,4 @@ Route::middleware('auth:sanctum')->group(function () {
 // Route::middleware('auth:sanctum')->post('/test', function (Request $request) {
 //     return $request->method();
 // });
-Route::post('/test', function (Request $request) {
-    return $request->method();
-});
+
