@@ -34,6 +34,7 @@ class StockEntryController extends Controller
             'date' => 'required|date',
             'warehouse_id' => 'required|exists:warehouses,id',
             'items' => 'required|array',
+            'note' => 'string|nullable',
         ]);
 
         $stockEntry = StockEntry::create($stockEntryData);
@@ -61,6 +62,7 @@ class StockEntryController extends Controller
             'product_id' => 'required|exists:products,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'quantity' => 'required|numeric|min:1',
+            'note' => 'string|nullable',
         ])->validate();
     }
 

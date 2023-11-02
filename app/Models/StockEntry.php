@@ -15,7 +15,7 @@ class StockEntry extends Model
 
     public function items()
     {
-        return $this->hasMany(Batch::class)->select(['id', 'stock_entry_id', 'quantity', 'product_id'])->with('product');
+        return $this->hasMany(Batch::class)->select(['id', 'stock_entry_id', 'quantity', 'product_id', 'note'])->with('product');
     }
 
     public function warehouse()

@@ -11,7 +11,7 @@ class Batch extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['product_id', 'warehouse_id', 'stock_entry_id', 'stock_exit', 'quantity', 'confirmed'];
+    protected $fillable = ['product_id', 'warehouse_id', 'stock_entry_id', 'stock_exit', 'quantity', 'confirmed', 'note'];
 
     public function stockEntry()
     {
