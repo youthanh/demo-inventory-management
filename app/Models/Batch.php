@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\StockEntry;
+use App\Models\Product;
 
 class Batch extends Model
 {
@@ -15,5 +16,10 @@ class Batch extends Model
     public function stockEntry()
     {
         return $this->belongsTo(StockEntry::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id')->select(['id', 'code', 'name']);
     }
 }

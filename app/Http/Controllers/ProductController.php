@@ -17,7 +17,7 @@ class ProductController extends Controller
         $model = new Product;
         $query = $model->query();
         $this->applyQuery($query, $model);
-        $result = $query->paginate(request('per_page', null));
+        $result = $query->simplePaginate(request('per_page', null));
         return response()->json($result, 200);
     }
 
@@ -28,7 +28,7 @@ class ProductController extends Controller
     {
         // Validate the incoming request data
         $request->validate([
-            'code' => 'required|string|max:255',
+            'code' => 'required|string|max:255|unique:products,code',
             'name' => 'required|string|max:255',
             'description' => 'string|nullable',
             'cost_price' => 'numeric|nullable',
@@ -43,6 +43,7 @@ class ProductController extends Controller
             'cost_price' => $request->input('cost_price'),
             'selling_price' => $request->input('selling_price'),
         ]);
+
 
         // Save the new product category to the database
         $product->save();
@@ -80,7 +81,7 @@ class ProductController extends Controller
         }
 
         $request->validate([
-            'code' => 'required|string|max:255',
+            'code' => 'required|string|max:255|unique:products,code,'.$id,
             'name' => 'required|string|max:255',
             'description' => 'string|nullable',
             'cost_price' => 'numeric|nullable',

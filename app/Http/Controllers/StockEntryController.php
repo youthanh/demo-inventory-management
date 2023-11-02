@@ -19,7 +19,7 @@ class StockEntryController extends Controller
         $model = new StockEntry;
         $query = $model->query();
         $this->applyQuery($query, $model);
-        $result = $query->with('items')->paginate(request('per_page', null));
+        $result = $query->with('warehouse')->with('items')->simplePaginate(request('per_page', null));
         return response()->json($result, 200);
     }
 
@@ -30,21 +30,24 @@ class StockEntryController extends Controller
     {
         // Lưu thông tin phiếu nhập kho
         $stockEntryData = $request->validate([
-            'code' => 'required',
+            'code' => 'required|unique:stock_entries,code',
             'date' => 'required|date',
-            'warehouse_id' => 'required',
+            'warehouse_id' => 'required|exists:warehouses,id',
             'items' => 'required|array',
         ]);
 
         $stockEntry = StockEntry::create($stockEntryData);
 
-        // Lưu thông tin mặt hàng trong phiếu nhập kho
-        $stockEntryItemsData = $request->input('items', []); // Lấy thông tin mặt hàng từ request
-
-        foreach ($stockEntryItemsData as $itemData) {
-            $itemData = $this->validateItem($itemData);
-            $itemData['stock_entry_id'] = $stockEntry->id;
-            Batch::create($itemData);
+        if (!empty($stockEntry->id)) {
+            // Lưu thông tin mặt hàng trong phiếu nhập kho
+            $stockEntryItemsData = $request->input('items', []); // Lấy thông tin mặt hàng từ request
+    
+            foreach ($stockEntryItemsData as $itemData) {
+                $itemData['stock_entry_id'] = $stockEntry->id;
+                $itemData['warehouse_id'] = $stockEntry->warehouse_id;
+                $itemData = $this->validateItem($itemData);
+                Batch::create($itemData);
+            }
         }
 
         return response()->json(['stockEntry' => $stockEntry]);
@@ -54,6 +57,7 @@ class StockEntryController extends Controller
     protected function validateItem($data)
     {
         return Validator::make($data, [
+            'stock_entry_id' => 'required|exists:stock_entries,id',
             'product_id' => 'required|exists:products,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'quantity' => 'required|numeric|min:1',
@@ -65,7 +69,16 @@ class StockEntryController extends Controller
      */
     public function show(string $id)
     {
-        //
+        // Tìm sản phẩm dựa trên ID
+        $model = StockEntry::with('warehouse')->with('items')->find($id);
+
+        // Kiểm tra xem sản phẩm có tồn tại không
+        if (!$model) {
+            return response()->json(['message' => 'Phiếu không tồn tại'], 404);
+        }
+
+        // Trả về thông tin chi tiết của sản phẩm
+        return response()->json($model, 200);
     }
 
     /**

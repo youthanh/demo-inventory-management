@@ -17,7 +17,7 @@ class WarehouseController extends Controller
         $model = new Warehouse;
         $query = $model->query();
         $this->applyQuery($query, $model);
-        $result = $query->paginate(request('per_page', null));
+        $result = $query->simplePaginate(request('per_page', null));
         return response()->json($result, 200);
     }
 
