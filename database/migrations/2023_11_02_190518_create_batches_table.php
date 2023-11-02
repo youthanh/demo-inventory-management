@@ -3,6 +3,10 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Product;
+use App\Models\Warehouse;
+use App\Models\StockEntry;
+use App\Models\StockExit;
 
 return new class extends Migration
 {
@@ -14,32 +18,25 @@ return new class extends Migration
         Schema::create('batches', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('product_id');
-            $table->foreign('product_id')
-                ->references('id')
-                ->on('products')
-                ->onUpdate('cascade')
-                ->onDelete('restrict');
+            $table->foreignIdFor(Product::class)->constrained();
+            $table->foreignIdFor(Warehouse::class)->constrained();
+            $table->foreignIdFor(StockEntry::class)->nullable()->default(null)->constrained();
+            $table->foreignIdFor(StockExit::class)->nullable()->default(null)->constrained();
+            $table->float('quantity')->default(0);
+            $table->boolean('confirmed')->default(false);
+            $table->text('note')->nullable()->default(null);
 
-            $table->unsignedBigInteger('warehouse_id');
-            $table->foreign('warehouse_id')
-                ->references('id')
-                ->on('warehouses')
-                ->onUpdate('cascade')
-                ->onDelete('restrict');
-                
             $table->string('serial')->unique()
                 ->nullable()
                 ->default(null);
             $table->string('lot')->unique()
                 ->nullable()
                 ->default(null);
-            $table->float('quantity')->default(0);
             $table->date('manufacture_date')->nullable()
                 ->default(null);
             $table->date('expiry_date')->nullable()
                 ->default(null);
-                
+
             $table->timestamps();
         });
     }

@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\StockEntryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,4 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::resource('warehouses', WarehouseController::class);
     Route::post('warehouses/{id}', [WarehouseController::class, 'update']);
+    
+    Route::resource('stock-entries', StockEntryController::class);
+    Route::post('stock-entries/{id}', [StockEntryController::class, 'update']);
 });
