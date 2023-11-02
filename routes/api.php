@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\WarehouseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,4 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('product-categories', ProductCategoryController::class);
     Route::resource('products', ProductController::class);
     Route::post('products/{id}', [ProductController::class, 'update']);
+    
+    Route::resource('warehouses', WarehouseController::class);
+    Route::post('warehouses/{id}', [WarehouseController::class, 'update']);
 });
