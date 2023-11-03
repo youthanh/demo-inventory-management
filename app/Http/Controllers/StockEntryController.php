@@ -88,7 +88,32 @@ class StockEntryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $model = StockEntry::find($id);
+
+        if (!$model) {
+            return response()->json(['message' => 'Phiếu không tồn tại'], 404);
+        }
+
+        $stockEntryData = $request->validate([
+            'code' => 'required|unique:stock_entries,code,'.$id,
+            'date' => 'required|date',
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'items' => 'required|array',
+            'note' => 'string|nullable',
+        ]);
+        $stockEntry = $model->update($stockEntryData);
+
+        if (!empty($stockEntry->id)) {
+            // Lưu thông tin mặt hàng trong phiếu nhập kho
+            $stockEntryItemsData = $request->input('items', []); // Lấy thông tin mặt hàng từ request
+    
+            foreach ($stockEntryItemsData as $itemData) {
+                $itemData['stock_entry_id'] = $stockEntry->id;
+                $itemData['warehouse_id'] = $stockEntry->warehouse_id;
+                $itemData = $this->validateItem($itemData);
+                Batch::create($itemData);
+            }
+        }
     }
 
     /**
