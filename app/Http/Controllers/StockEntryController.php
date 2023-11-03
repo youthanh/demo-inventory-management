@@ -138,11 +138,9 @@ class StockEntryController extends Controller
     public function destroy(string $id)
     {
         // Kiểm tra xem có tồn tại bản ghi với ID được cung cấp hay không
-        $stockEntry = StockEntry::findOrFail($id);
+        $stockEntry = StockEntry::find($id);
         if (!$stockEntry) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
-        } else {
-            var_dump($stockEntry);
         }
 
         // Xóa các thông tin mặt hàng liên quan
