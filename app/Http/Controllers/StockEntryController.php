@@ -115,14 +115,16 @@ class StockEntryController extends Controller
                 $itemData['warehouse_id'] = $model->warehouse_id;
                 $itemData['date'] = $model->date;
                 $model->items()->updateOrInsert(
-                    ['id' => $itemData['id']],
+                    [
+                        'id' => $itemData['id'],
+                    ],
                     [
                         'product_id' => $itemData['product_id'],
                         'warehouse_id' => $itemData['warehouse_id'],
                         'stock_entry_id' => $itemData['stock_entry_id'],
+                        'quantity' => $itemData['quantity'],
+                        'note' => $itemData['note'],
                     ],
-                    ['quantity' => $itemData['quantity']],
-                    ['note' => $itemData['note']],
                 );
             }
         }
