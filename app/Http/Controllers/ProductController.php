@@ -26,31 +26,14 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the incoming request data
-        $request->validate([
-            'code' => 'required|string|max:255|unique:products,code',
-            'name' => 'required|string|max:255',
-            'order' => 'string|nullable',
-            'supplier' => 'string|nullable',
-            'unit_price' => 'numeric|gte:0',
-        ]);
+        $product = new Product();
+        $request->validate($product->validate);
+        $submitedData = $product->create($request->all());
 
-        // Create a new product instance
-        $product = new Product([
-            'code' => $request->input('code'),
-            'name' => $request->input('name'),
-            'description' => $request->input('description'),
-            'order' => $request->input('order'),
-            'supplier' => $request->input('supplier'),
-            'unit_price' => $request->input('unit_price'),
-        ]);
-
-
-        // Save the new product category to the database
-        $product->save();
-
-        // Return a response, e.g., a JSON response
-        return response()->json(['message' => 'Lưu thành công', 'data' => $product], 201);
+        if (!empty($submitedData->id)) {
+            return response()->json(['message' => 'Lưu thành công', 'data' => $submitedData], 201);
+        }
+        return response()->json(['message' => 'Lưu thất bại'], 500);
     }
 
     /**
@@ -58,15 +41,12 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        // Tìm sản phẩm dựa trên ID
         $product = Product::find($id);
 
-        // Kiểm tra xem sản phẩm có tồn tại không
         if (!$product) {
             return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
         }
 
-        // Trả về thông tin chi tiết của sản phẩm
         return response()->json($product, 200);
     }
 
@@ -80,18 +60,15 @@ class ProductController extends Controller
         if (!$product) {
             return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
         }
+        $validate = $product->validate;
+        $validate['code'] .= ',' . $id;
+        $request->validate($validate);
 
-        $request->validate([
-            'code' => 'required|string|max:255|unique:products,code,'.$id,
-            'name' => 'required|string|max:255',
-            'description' => 'string|nullable',
-            'order' => 'string|nullable',
-            'supplier' => 'string|nullable',
-            'unit_price' => 'numeric|gte:0',
-        ]);
-        $product->update($request->all());
-
-        return response()->json(['message' => 'Lưu thành công', 'data' => $product]);
+        $submitedData = $product->update($request->all());
+        if (!empty($submitedData->id)) {
+            return response()->json(['message' => 'Lưu thành công', 'data' => $submitedData], 201);
+        }
+        return response()->json(['message' => 'Lưu thất bại'], 500);
     }
 
     /**

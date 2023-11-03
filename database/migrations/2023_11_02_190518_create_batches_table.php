@@ -17,6 +17,7 @@ return new class extends Migration
     {
         Schema::create('batches', function (Blueprint $table) {
             $table->id();
+            $table->date('date');
 
             $table->foreignIdFor(Product::class)->constrained();
             $table->foreignIdFor(Warehouse::class)->constrained();

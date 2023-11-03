@@ -28,47 +28,28 @@ class StockEntryController extends Controller
      */
     public function store(Request $request)
     {
-        // Lưu thông tin phiếu nhập kho
-        $stockEntryData = $request->validate([
-            'code' => 'required|unique:stock_entries,code',
-            'date' => 'required|date',
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'supplier' => 'nullable',
-            'note' => 'string|nullable',
-            'items' => 'required|array',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|gt:0',
-            'items.*.unit_price' => 'required|numeric|gte:0',
-            'items.*.note' => 'string|nullable',
-        ]);
+        // Validate
+        $stockEntry = new StockEntry;
+        $batch = new Batch;
+        $manyName = 'items';
+        $validate = $this->applyValidate($stockEntry->validate, ['name' => $manyName, 'validate' => $batch->validate]);
+        unset($validate[$manyName.'.*.warehouse_id']);
+        unset($validate[$manyName.'.*.date']);
+        $request->validate($validate);
 
-        $stockEntry = StockEntry::create($stockEntryData);
+        $submitedData = $stockEntry->create($request->all());
 
-        if (!empty($stockEntry->id)) {
-            // Lưu thông tin mặt hàng trong phiếu nhập kho
-            $stockEntryItemsData = $request->input('items', []); // Lấy thông tin mặt hàng từ request
-
+        if (!empty($submitedData->id)) {
+            $stockEntryItemsData = $request->input('items', []);
             foreach ($stockEntryItemsData as $itemData) {
-                $itemData['stock_entry_id'] = $stockEntry->id;
-                $itemData['warehouse_id'] = $stockEntry->warehouse_id;
-                // $itemData = $this->validateItem($itemData);
-                Batch::create($itemData);
+                $itemData['stock_entry_id'] = $submitedData->id;
+                $itemData['warehouse_id'] = $submitedData->warehouse_id;
+                $itemData['date'] = $submitedData->date;
+                $batch->create($itemData);
             }
+            return response()->json(['message' => 'Lưu thành công', 'data' => $submitedData], 201);
         }
-
-        return response()->json(['stockEntry' => $stockEntry]);
-    }
-
-    // Hàm xác thực item
-    protected function validateItem($data)
-    {
-        return Validator::make($data, [
-            'stock_entry_id' => 'required|exists:stock_entries,id',
-            'product_id' => 'required|exists:products,id',
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'quantity' => 'required|numeric|min:1',
-            'note' => 'string|nullable',
-        ])->validate();
+        return response()->json(['message' => 'Lưu thất bại'], 500);
     }
 
     /**
@@ -76,15 +57,11 @@ class StockEntryController extends Controller
      */
     public function show(string $id)
     {
-        // Tìm sản phẩm dựa trên ID
         $model = StockEntry::with('warehouse')->with('items')->find($id);
-
-        // Kiểm tra xem sản phẩm có tồn tại không
         if (!$model) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
         }
 
-        // Trả về thông tin chi tiết của sản phẩm
         return response()->json($model, 200);
     }
 
@@ -93,49 +70,33 @@ class StockEntryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $model = StockEntry::find($id);
-
-        if (!$model) {
+        $stockEntry = StockEntry::find($id);
+        if (!$stockEntry) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
         }
 
-        $stockEntryData = $request->validate([
-            'code' => 'required|unique:stock_entries,code,' . $id,
-            'date' => 'required|date',
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'supplier' => 'nullable',
-            'note' => 'string|nullable',
-            'items' => 'required|array',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|gt:0',
-            'items.*.unit_price' => 'required|numeric|gte:0',
-            'items.*.note' => 'string|nullable',
-        ]);
-        $isSuccess = $model->update($stockEntryData);
+        // Validate
+        $batch = new Batch;
+        $validate = $this->applyValidate($stockEntry->validate, ['name' => 'items', 'validate' => $batch->validate], 'update', ['id' => $id, 'fields' => ['code']]);
+        $request->validate($validate);
 
+        $isSuccess = $stockEntry->update($request->all());
         if ($isSuccess) {
             $stockEntryItemsData = $request->input('items', []);
+            if (!empty($stockEntryItemsData)) {
+                $stockEntry->items()->delete();
+                foreach ($stockEntryItemsData as $itemData) {
+                    $itemData['stock_entry_id'] = $stockEntry->id;
+                    $itemData['warehouse_id'] = $stockEntry->warehouse_id;
+                    $itemData['date'] = $stockEntry->date;
 
-            foreach ($stockEntryItemsData as $itemData) {
-                $itemData['stock_entry_id'] = $model->id;
-                $itemData['warehouse_id'] = $model->warehouse_id;
-                $itemData['date'] = $model->date;
-                $model->items()->updateOrInsert(
-                    [
-                        'id' => $itemData['id'],
-                    ],
-                    [
-                        'product_id' => $itemData['product_id'],
-                        'warehouse_id' => $itemData['warehouse_id'],
-                        'stock_entry_id' => $itemData['stock_entry_id'],
-                        'quantity' => $itemData['quantity'],
-                        'note' => $itemData['note'],
-                    ],
-                );
+                    $batch->create($itemData);
+                }
             }
+            return response()->json(['message' => 'Lưu thành công', 'data' => $stockEntry], 200);
         }
 
-        return response()->json(['stockEntry' => $model]);
+        return response()->json(['message' => 'Lưu thất bại'], 500);
     }
 
     /**
@@ -143,16 +104,12 @@ class StockEntryController extends Controller
      */
     public function destroy(string $id)
     {
-        // Kiểm tra xem có tồn tại bản ghi với ID được cung cấp hay không
         $stockEntry = StockEntry::find($id);
         if (!$stockEntry) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
         }
 
-        // Xóa các thông tin mặt hàng liên quan
         $stockEntry->items()->delete();
-
-        // Sau đó xóa thông tin chung
         $stockEntry->delete();
 
         return response()->json(['message' => 'Xóa thành công']);

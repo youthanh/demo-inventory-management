@@ -13,6 +13,14 @@ class StockEntry extends Model
 
     protected $fillable = ['code', 'date', 'warehouse_id', 'supplier', 'note'];
 
+    public $validate = [
+        'code' => 'required|unique:stock_entries,code',
+        'date' => 'required|date',
+        'warehouse_id' => 'required|exists:warehouses,id',
+        'supplier' => 'nullable',
+        'note' => 'string|nullable',
+    ];
+
     public function items()
     {
         return $this->hasMany(Batch::class)->select(['id', 'stock_entry_id', 'warehouse_id', 'product_id', 'quantity', 'unit_price', 'note'])->with('product');
