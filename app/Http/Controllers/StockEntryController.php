@@ -43,7 +43,7 @@ class StockEntryController extends Controller
         if (!empty($stockEntry->id)) {
             // Lưu thông tin mặt hàng trong phiếu nhập kho
             $stockEntryItemsData = $request->input('items', []); // Lấy thông tin mặt hàng từ request
-    
+
             foreach ($stockEntryItemsData as $itemData) {
                 $itemData['stock_entry_id'] = $stockEntry->id;
                 $itemData['warehouse_id'] = $stockEntry->warehouse_id;
@@ -96,7 +96,7 @@ class StockEntryController extends Controller
         }
 
         $stockEntryData = $request->validate([
-            'code' => 'required|unique:stock_entries,code,'.$id,
+            'code' => 'required|unique:stock_entries,code,' . $id,
             'date' => 'required|date',
             'warehouse_id' => 'required|exists:warehouses,id',
             'note' => 'string|nullable',
@@ -109,7 +109,7 @@ class StockEntryController extends Controller
 
         if ($isSuccess) {
             $stockEntryItemsData = $request->input('items', []);
-    
+
             foreach ($stockEntryItemsData as $itemData) {
                 $itemData['stock_entry_id'] = $model->id;
                 $itemData['warehouse_id'] = $model->warehouse_id;
@@ -128,7 +128,7 @@ class StockEntryController extends Controller
                 );
             }
         }
-    
+
         return response()->json(['stockEntry' => $model]);
     }
 
@@ -137,6 +137,15 @@ class StockEntryController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Kiểm tra xem có tồn tại bản ghi với ID được cung cấp hay không
+        $stockEntry = StockEntry::findOrFail($id);
+
+        // Xóa các thông tin mặt hàng liên quan
+        $stockEntry->items()->delete();
+
+        // Sau đó xóa thông tin chung
+        $stockEntry->delete();
+
+        return response()->json(['message' => 'Xóa thành công']);
     }
 }
