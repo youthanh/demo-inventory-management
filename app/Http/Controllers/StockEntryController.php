@@ -113,6 +113,7 @@ class StockEntryController extends Controller
             foreach ($stockEntryItemsData as $itemData) {
                 $itemData['stock_entry_id'] = $model->id;
                 $itemData['warehouse_id'] = $model->warehouse_id;
+                $itemData['date'] = $model->date;
                 $model->items()->updateOrInsert(
                     [
                         'product_id' => $itemData['product_id'],
