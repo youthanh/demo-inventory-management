@@ -139,6 +139,9 @@ class StockEntryController extends Controller
     {
         // Kiểm tra xem có tồn tại bản ghi với ID được cung cấp hay không
         $stockEntry = StockEntry::findOrFail($id);
+        if (!$stockEntry) {
+            return response()->json(['message' => 'Phiếu không tồn tại'], 404);
+        }
 
         // Xóa các thông tin mặt hàng liên quan
         $stockEntry->items()->delete();
