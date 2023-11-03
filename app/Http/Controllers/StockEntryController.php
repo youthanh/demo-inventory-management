@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\StockEntry;
 use App\Models\Batch;
-use Illuminate\Support\Facades\Validator;
 use App\Traits\ApiDataProcessingTrait;
 
 class StockEntryController extends Controller

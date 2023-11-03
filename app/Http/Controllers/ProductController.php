@@ -60,13 +60,12 @@ class ProductController extends Controller
         if (!$product) {
             return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
         }
-        $validate = $product->validate;
-        $validate['code'] .= ',' . $id;
+        $validate = $this->applyValidate($product->validate, [], 'update', ['id' => $id, 'fields' => ['code']]);
         $request->validate($validate);
 
-        $submitedData = $product->update($request->all());
-        if (!empty($submitedData->id)) {
-            return response()->json(['message' => 'Lưu thành công', 'data' => $submitedData], 201);
+        $isSuccess = $product->update($request->all());
+        if (!empty($isSuccess)) {
+            return response()->json(['message' => 'Lưu thành công', 'data' => $product], 200);
         }
         return response()->json(['message' => 'Lưu thất bại'], 500);
     }
