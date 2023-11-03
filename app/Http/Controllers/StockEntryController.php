@@ -19,7 +19,8 @@ class StockEntryController extends Controller
         $model = new StockEntry;
         $query = $model->query();
         $this->applyQuery($query, $model);
-        $result = $query->with('warehouse')->with('items')->simplePaginate(request('per_page', null));
+        // $result = $query->with('warehouse')->with('items')->simplePaginate(request('per_page', null));
+        $result = $query->with('warehouse')->simplePaginate(request('per_page', null));
         return response()->json($result, 200);
     }
 
@@ -104,16 +105,17 @@ class StockEntryController extends Controller
             'items.*.quantity' => 'required|numeric',
             'items.*.note' => 'string|nullable',
         ]);
-        $stockEntry = $model->update($stockEntryData);
+        $isSuccess = $model->update($stockEntryData);
 
-        if (!empty($stockEntry->id)) {
+        if ($isSuccess) {
+            var_dump($model);die;
             // Lưu thông tin mặt hàng trong phiếu nhập kho
             $stockEntryItemsData = $request->input('items', []); // Lấy thông tin mặt hàng từ request
     
             foreach ($stockEntryItemsData as $itemData) {
-                $itemData['stock_entry_id'] = $stockEntry->id;
-                $itemData['warehouse_id'] = $stockEntry->warehouse_id;
-                $stockEntry->items()->updateOrInsert(
+                $itemData['stock_entry_id'] = $model->id;
+                $itemData['warehouse_id'] = $model->warehouse_id;
+                $model->items()->updateOrInsert(
                     [
                         'product_id' => $itemData['product_id'],
                         'warehouse_id' => $itemData['warehouse_id'],
@@ -125,7 +127,7 @@ class StockEntryController extends Controller
             }
         }
     
-        return response()->json(['stockEntry' => $stockEntry]);
+        return response()->json(['stockEntry' => $model]);
     }
 
     /**
