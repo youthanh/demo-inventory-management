@@ -98,8 +98,11 @@ class StockEntryController extends Controller
             'code' => 'required|unique:stock_entries,code,'.$id,
             'date' => 'required|date',
             'warehouse_id' => 'required|exists:warehouses,id',
-            'items' => 'required|array',
             'note' => 'string|nullable',
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric',
+            'items.*.note' => 'string|nullable',
         ]);
         $stockEntry = $model->update($stockEntryData);
 
@@ -110,10 +113,19 @@ class StockEntryController extends Controller
             foreach ($stockEntryItemsData as $itemData) {
                 $itemData['stock_entry_id'] = $stockEntry->id;
                 $itemData['warehouse_id'] = $stockEntry->warehouse_id;
-                $itemData = $this->validateItem($itemData);
-                Batch::create($itemData);
+                $stockEntry->items()->updateOrInsert(
+                    [
+                        'product_id' => $itemData['product_id'],
+                        'warehouse_id' => $itemData['warehouse_id'],
+                        'stock_entry_id' => $itemData['stock_entry_id'],
+                    ],
+                    ['quantity' => $itemData['quantity']],
+                    ['note' => $itemData['note']],
+                );
             }
         }
+    
+        return response()->json(['stockEntry' => $stockEntry]);
     }
 
     /**
