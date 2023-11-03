@@ -10,4 +10,10 @@ class Warehouse extends Model
     use HasFactory;
     
     protected $fillable = ['code', 'name', 'address'];
+
+    public $validate = [
+        'code' => 'required|string|unique:warehouses,code',
+        'name' => 'required|string',
+        'address' => 'nullable|string',
+    ];
 }

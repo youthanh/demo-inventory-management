@@ -26,25 +26,14 @@ class WarehouseController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the incoming request data
-        $request->validate([
-            'code' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'address' => 'string|nullable',
-        ]);
+        $warehouse = new Warehouse;
+        $request->validate($warehouse->validate);
 
-        // Create a new product instance
-        $warehouse = new Warehouse([
-            'code' => $request->input('code'),
-            'name' => $request->input('name'),
-            'address' => $request->input('description'),
-        ]);
-
-        // Save the new product category to the database
-        $warehouse->save();
-
-        // Return a response, e.g., a JSON response
-        return response()->json(['message' => 'Lưu thành công', 'data' => $warehouse], 201);
+        $submitedData = $warehouse->create($request->all());
+        if (!empty($submitedData->id)) {
+            return response()->json(['message' => 'Lưu thành công', 'data' => $submitedData], 201);
+        }
+        return response()->json(['message' => 'Lưu thất bại'], 500);
     }
 
     /**
@@ -52,15 +41,11 @@ class WarehouseController extends Controller
      */
     public function show(string $id)
     {
-        // Tìm sản phẩm dựa trên ID
         $warehouse = Warehouse::find($id);
-
-        // Kiểm tra xem sản phẩm có tồn tại không
         if (!$warehouse) {
             return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
         }
 
-        // Trả về thông tin chi tiết của sản phẩm
         return response()->json($warehouse, 200);
     }
 
@@ -75,14 +60,15 @@ class WarehouseController extends Controller
             return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
         }
 
-        $request->validate([
-            'code' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'address' => 'string|nullable',
-        ]);
-        $warehouse->update($request->all());
+        $validate = $this->applyValidate($warehouse->validate, [], 'update', ['id' => $id, 'fields' => ['code']]);
 
-        return response()->json(['message' => 'Lưu thành công', 'data' => $warehouse]);
+        $request->validate($validate);
+        $isSuccess = $warehouse->update($request->all());
+
+        if ($isSuccess) {
+            return response()->json(['message' => 'Lưu thành công', 'data' => $warehouse]);
+        }
+        return response()->json(['message' => 'Lưu thất bại'], 500);
     }
 
     /**
@@ -90,18 +76,13 @@ class WarehouseController extends Controller
      */
     public function destroy(string $id)
     {
-        // Tìm sản phẩm dựa trên ID
         $warehouse = Warehouse::find($id);
-
-        // Kiểm tra xem sản phẩm có tồn tại không
         if (!$warehouse) {
             return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
         }
 
-        // Xóa sản phẩm
         $warehouse->delete();
 
-        // Trả về thông báo xóa thành công
         return response()->json(['message' => 'Xóa thành công'], 200);
     }
 }
