@@ -19,7 +19,6 @@ class StockEntryController extends Controller
         $model = new StockEntry;
         $query = $model->query();
         $this->applyQuery($query, $model);
-        // $result = $query->with('warehouse')->with('items')->simplePaginate(request('per_page', null));
         $result = $query->with('warehouse')->simplePaginate(request('per_page', null));
         return response()->json($result, 200);
     }
@@ -34,8 +33,13 @@ class StockEntryController extends Controller
             'code' => 'required|unique:stock_entries,code',
             'date' => 'required|date',
             'warehouse_id' => 'required|exists:warehouses,id',
-            'items' => 'required|array',
+            'supplier' => 'nullable',
             'note' => 'string|nullable',
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|gt:0',
+            'items.*.unit_price' => 'required|numeric|gte:0',
+            'items.*.note' => 'string|nullable',
         ]);
 
         $stockEntry = StockEntry::create($stockEntryData);
@@ -47,7 +51,7 @@ class StockEntryController extends Controller
             foreach ($stockEntryItemsData as $itemData) {
                 $itemData['stock_entry_id'] = $stockEntry->id;
                 $itemData['warehouse_id'] = $stockEntry->warehouse_id;
-                $itemData = $this->validateItem($itemData);
+                // $itemData = $this->validateItem($itemData);
                 Batch::create($itemData);
             }
         }
@@ -99,10 +103,12 @@ class StockEntryController extends Controller
             'code' => 'required|unique:stock_entries,code,' . $id,
             'date' => 'required|date',
             'warehouse_id' => 'required|exists:warehouses,id',
+            'supplier' => 'nullable',
             'note' => 'string|nullable',
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric',
+            'items.*.quantity' => 'required|numeric|gt:0',
+            'items.*.unit_price' => 'required|numeric|gte:0',
             'items.*.note' => 'string|nullable',
         ]);
         $isSuccess = $model->update($stockEntryData);
