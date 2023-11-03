@@ -108,9 +108,7 @@ class StockEntryController extends Controller
         $isSuccess = $model->update($stockEntryData);
 
         if ($isSuccess) {
-            var_dump($model);die;
-            // Lưu thông tin mặt hàng trong phiếu nhập kho
-            $stockEntryItemsData = $request->input('items', []); // Lấy thông tin mặt hàng từ request
+            $stockEntryItemsData = $request->input('items', []);
     
             foreach ($stockEntryItemsData as $itemData) {
                 $itemData['stock_entry_id'] = $model->id;
