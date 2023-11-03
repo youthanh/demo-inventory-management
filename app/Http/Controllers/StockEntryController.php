@@ -141,6 +141,8 @@ class StockEntryController extends Controller
         $stockEntry = StockEntry::findOrFail($id);
         if (!$stockEntry) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
+        } else {
+            var_dump($stockEntry);
         }
 
         // Xóa các thông tin mặt hàng liên quan
