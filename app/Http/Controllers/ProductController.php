@@ -30,9 +30,9 @@ class ProductController extends Controller
         $request->validate([
             'code' => 'required|string|max:255|unique:products,code',
             'name' => 'required|string|max:255',
-            'description' => 'string|nullable',
-            'cost_price' => 'numeric|nullable',
-            'selling_price' => 'numeric|nullable',
+            'order' => 'string|nullable',
+            'supplier' => 'string|nullable',
+            'unit_price' => 'numeric|gte:0',
         ]);
 
         // Create a new product instance
@@ -40,8 +40,9 @@ class ProductController extends Controller
             'code' => $request->input('code'),
             'name' => $request->input('name'),
             'description' => $request->input('description'),
-            'cost_price' => $request->input('cost_price'),
-            'selling_price' => $request->input('selling_price'),
+            'order' => $request->input('order'),
+            'supplier' => $request->input('supplier'),
+            'unit_price' => $request->input('unit_price'),
         ]);
 
 
@@ -84,8 +85,9 @@ class ProductController extends Controller
             'code' => 'required|string|max:255|unique:products,code,'.$id,
             'name' => 'required|string|max:255',
             'description' => 'string|nullable',
-            'cost_price' => 'numeric|nullable',
-            'selling_price' => 'numeric|nullable',
+            'order' => 'string|nullable',
+            'supplier' => 'string|nullable',
+            'unit_price' => 'numeric|gte:0',
         ]);
         $product->update($request->all());
 
