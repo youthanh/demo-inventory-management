@@ -11,11 +11,11 @@ class StockEntry extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code', 'date', 'warehouse_id', 'note'];
+    protected $fillable = ['code', 'date', 'warehouse_id', 'supplier', 'note'];
 
     public function items()
     {
-        return $this->hasMany(Batch::class)->select(['id', 'stock_entry_id', 'warehouse_id', 'quantity', 'product_id', 'note'])->with('product');
+        return $this->hasMany(Batch::class)->select(['id', 'stock_entry_id', 'warehouse_id', 'product_id', 'quantity', 'unit_price', 'note'])->with('product');
     }
 
     public function warehouse()

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->date('date')->default(now());
             $table->foreignIdFor(Warehouse::class)->constrained();
+            $table->string('supplier')->nullable()->default(null);
             $table->text('note')->nullable()->default(null);
             $table->boolean('confirmed')->default(false);
             $table->timestamps();

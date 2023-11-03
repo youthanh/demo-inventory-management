@@ -22,20 +22,21 @@ return new class extends Migration
             $table->foreignIdFor(Warehouse::class)->constrained();
             $table->foreignIdFor(StockEntry::class)->nullable()->default(null)->constrained();
             $table->foreignIdFor(StockExit::class)->nullable()->default(null)->constrained();
-            $table->float('quantity')->default(0);
-            $table->boolean('confirmed')->default(false);
+            $table->float('quantity', 8, 2, true)->default(0);
+            $table->float('unit_price', 12, 3, true)->default(0);
             $table->text('note')->nullable()->default(null);
+            $table->boolean('confirmed')->default(false);
 
-            $table->string('serial')->unique()
-                ->nullable()
-                ->default(null);
-            $table->string('lot')->unique()
-                ->nullable()
-                ->default(null);
-            $table->date('manufacture_date')->nullable()
-                ->default(null);
-            $table->date('expiry_date')->nullable()
-                ->default(null);
+            // $table->string('serial')->unique()
+            //     ->nullable()
+            //     ->default(null);
+            // $table->string('lot')->unique()
+            //     ->nullable()
+            //     ->default(null);
+            // $table->date('manufacture_date')->nullable()
+            //     ->default(null);
+            // $table->date('expiry_date')->nullable()
+            //     ->default(null);
 
             $table->timestamps();
         });

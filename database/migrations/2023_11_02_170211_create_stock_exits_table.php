@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('code')->unique();
             $table->foreignIdFor(Warehouse::class)->constrained();
+            $table->string('customer')->nullable()->default(null);
             $table->text('note')->nullable()->default(null);
             $table->boolean('confirmed')->default(false);
 
