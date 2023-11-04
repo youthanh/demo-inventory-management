@@ -22,11 +22,11 @@ class Warehouse extends Model
     public function inventory()
     {
         $query = DB::table('batches')
-            ->selectRaw('COALESCE(SUM(IF(stock_exit_id IS NOT NULL, (quantity * -1), quantity)), 0) as quantity')
+            ->selectRaw('COALESCE(SUM(IF(stock_exit_id IS NOT NULL, (quantity * -1), quantity)), 0) as total_quantity')
             ->selectRaw('product_id')
             ->where('warehouse_id', $this->id)
             ->where('confirmed', 1)
-            ->havingRaw('quantity <> 0')
+            ->havingRaw('total_quantity <> 0')
             ->groupBy('warehouse_id')
             ->groupBy('product_id');
         $result = $query->get();
