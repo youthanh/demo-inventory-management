@@ -32,10 +32,35 @@ class Warehouse extends Model
         $result = $query->get();
 
         foreach ($result as $index => $row) {
-            $product = Product::where('id', $row->product_id)->select(['id', 'code', 'name', 'unit_price'])->get();
+            $product = Product::where('id', $row->product_id)->select(['id', 'code', 'name', 'unit_price'])->first();
             $result[$index]->product = $product;
         }
 
         return $result;
     }
+    
+    // public function inventoryTurnover()
+    // {
+    //     $query = DB::table('batches')
+    //         ->selectRaw('(
+    //             SELECT
+    //             FROM batches AS tb_batches
+    //             WHERE tb_batches.
+    //         )')
+    //         ->selectRaw('product_id')
+    //         ->where('warehouse_id', $this->id)
+    //         ->where('confirmed', 1)
+    //         ->havingRaw('total_quantity <> 0')
+    //         ->groupBy('warehouse_id')
+    //         ->groupBy('product_id')
+    //         ->orderBy('date', 'asc');
+    //     $result = $query->get();
+
+    //     foreach ($result as $index => $row) {
+    //         $product = Product::where('id', $row->product_id)->select(['id', 'code', 'name', 'unit_price'])->get();
+    //         $result[$index]->product = $product;
+    //     }
+
+    //     return $result;
+    // }
 }
