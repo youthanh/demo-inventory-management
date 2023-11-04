@@ -143,8 +143,8 @@ class StockExitController extends Controller
                 $quantity = $this->inventoryService->checkInventory($item->product_id, $item->warehouse_id, ['stock_exit_id' => $stockExit->id]);
                 if ($quantity < 0) {
                     $canFlag = false;
+                    $outStockItems[] = ['product' => $item->product, 'quantityShortage' => $quantity];
                 }
-                $outStockItems[] = ['product' => $item->product, 'quantityShortage' => $quantity];
             }
             if ($canFlag) {
                 $stockExit->update(['confirmed' => 1]);
@@ -152,7 +152,7 @@ class StockExitController extends Controller
                 foreach ($stockExit->items as $item) {
                     $item->update(['confirmed' => 1]);
                 }
-                return response()->json(['message' => 'Duyệt thành công', 'outStockItems' => $outStockItems]);
+                return response()->json(['message' => 'Duyệt thành công']);
             } else {
                 return response()->json(['message' => 'Số lượng trong kho không đủ để duyệt', 'outStockItems' => $outStockItems]);
             }
