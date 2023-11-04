@@ -85,4 +85,13 @@ class WarehouseController extends Controller
 
         return response()->json(['message' => 'Xóa thành công'], 200);
     }
+
+    public function inventory(string $id) {
+        $warehouse = Warehouse::find($id);
+        if (!$warehouse) {
+            return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
+        }
+        $result = $warehouse->inventory();
+        return response()->json(['data' => $result], 200);
+    }
 }

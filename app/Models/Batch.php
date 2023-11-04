@@ -20,7 +20,7 @@ class Batch extends Model
         'product_id' => 'required|numeric|gt:0|exists:products,id',
         'warehouse_id' => 'required|numeric|gt:0|exists:warehouse,id',
         'quantity' => 'required|numeric|gte:0',
-        'unit_price' => 'required|numeric|gte:0',
+        'unit_price' => 'nullable|numeric|gte:0',
         'note' => 'nullable|string',
     ];
 

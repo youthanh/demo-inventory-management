@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::resource('warehouses', WarehouseController::class);
     Route::post('warehouses/{id}', [WarehouseController::class, 'update']);
+    Route::get('warehouses/inventory/{id}', [WarehouseController::class, 'inventory']);
     
     Route::resource('stock-entries', StockEntryController::class);
     Route::post('stock-entries/{id}', [StockEntryController::class, 'update']);
