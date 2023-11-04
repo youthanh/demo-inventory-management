@@ -11,14 +11,15 @@ class StockEntry extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code', 'date', 'warehouse_id', 'supplier', 'note'];
+    protected $fillable = ['code', 'date', 'warehouse_id', 'supplier', 'note', 'confirmed'];
 
     public $validate = [
-        'code' => 'required|unique:stock_entries,code',
-        'date' => 'required|date',
-        'warehouse_id' => 'required|exists:warehouses,id',
-        'supplier' => 'nullable',
-        'note' => 'string|nullable',
+        'code' => 'required|string|unique:stock_entries,code',
+        'date' => 'required|date_format:Y-m-d',
+        'warehouse_id' => 'required|numeric|gt:0|exists:warehouses,id',
+        'supplier' => 'nullable|string',
+        'note' => 'nullable|string',
+        'confirmed' => 'nullable|boolean',
     ];
 
     public function items()

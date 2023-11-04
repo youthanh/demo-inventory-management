@@ -14,14 +14,14 @@ class Batch extends Model
     protected $fillable = ['date', 'product_id', 'warehouse_id', 'stock_entry_id', 'stock_exit_id', 'quantity', 'unit_price', 'note', 'confirmed'];
     
     public $validate = [
-        'date' => 'required|date',
-        'stock_entry_id' => 'nullable|exists:stock_entries,id',
-        'stock_exit_id' => 'nullable|exists:stock_exits,id',
-        'product_id' => 'required|exists:products,id',
-        'warehouse_id' => 'required|exists:warehouse,id',
+        'date' => 'required|date_format:Y-m-d',
+        'stock_entry_id' => 'nullable|numeric|gt:0|exists:stock_entries,id',
+        'stock_exit_id' => 'nullable|numeric|gt:0|exists:stock_exits,id',
+        'product_id' => 'required|numeric|gt:0|exists:products,id',
+        'warehouse_id' => 'required|numeric|gt:0|exists:warehouse,id',
         'quantity' => 'required|numeric|gte:0',
         'unit_price' => 'required|numeric|gte:0',
-        'note' => 'string|nullable',
+        'note' => 'nullable|string',
     ];
 
     public function stockEntry()

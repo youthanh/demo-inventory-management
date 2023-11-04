@@ -14,8 +14,8 @@ class Product extends Model
     public $validate = [
         'code' => 'required|string|unique:products,code',
         'name' => 'required|string',
-        'order' => 'string|nullable',
-        'supplier' => 'string|nullable',
-        'unit_price' => 'numeric|gte:0',
+        'order' => 'nullable|string',
+        'supplier' => 'nullable"string',
+        'unit_price' => 'nullable|numeric|gte:0',
     ];
 }

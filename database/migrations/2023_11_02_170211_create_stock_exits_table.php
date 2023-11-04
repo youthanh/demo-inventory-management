@@ -15,6 +15,7 @@ return new class extends Migration
         Schema::create('stock_exits', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique();
+            $table->date('date')->default(now());
             $table->foreignIdFor(Warehouse::class)->constrained();
             $table->string('customer')->nullable()->default(null);
             $table->text('note')->nullable()->default(null);

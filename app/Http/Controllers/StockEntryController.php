@@ -6,13 +6,21 @@ use Illuminate\Http\Request;
 use App\Models\StockEntry;
 use App\Models\Batch;
 use App\Traits\ApiDataProcessingTrait;
+use App\Services\InventoryService;
 
 class StockEntryController extends Controller
 {
     use ApiDataProcessingTrait;
+    protected $inventoryService;
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct(InventoryService $inventoryService)
+    {
+        $this->inventoryService = $inventoryService;
+    }
+
     public function index()
     {
         $model = new StockEntry;
@@ -73,6 +81,9 @@ class StockEntryController extends Controller
         if (!$stockEntry) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
         }
+        if ($stockEntry->confirmed) {
+            return response()->json(['message' => 'Phiếu đã duyệt. Không thể sửa!'], 422);
+        }
 
         // Validate
         $batch = new Batch;
@@ -107,10 +118,54 @@ class StockEntryController extends Controller
         if (!$stockEntry) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
         }
+        if ($stockEntry->confirmed) {
+            return response()->json(['message' => 'Phiếu đã duyệt. Không thể xóa!'], 422);
+        }
 
         $stockEntry->items()->delete();
         $stockEntry->delete();
 
         return response()->json(['message' => 'Xóa thành công']);
+    }
+
+    public function confirm(Request $request, $id) {
+        $stockEntry = StockEntry::find($id);
+        if (!$stockEntry) {
+            return response()->json(['message' => 'Phiếu không tồn tại'], 404);
+        }
+
+        $request->validate(['confirmed' => 'required|boolean']);
+        
+        if (!$request->confirmed) { // Bỏ duyệt kho
+            $arrQuantity = [];
+            $items = $stockEntry->items;
+            $canFlag = true;
+            $outStockItems = [];
+            foreach ($items as $item) {
+                $quantity = $this->inventoryService->checkInventory($item->product_id, $item->warehouse_id, ['stock_entry_id' => $stockEntry->id]);
+                if ($quantity < 0) {
+                    $canFlag = false;
+                    $outStockItems[] = ['product' => $item->product, 'quantityShortage' => $quantity];
+                }
+            }
+            if ($canFlag) {
+                $stockEntry->update(['confirmed' => 0]);
+
+                foreach ($stockEntry->items as $item) {
+                    $item->update(['confirmed' => 0]);
+                }
+                return response()->json(['message' => 'Hủy duyệt thành công']);
+            } else {
+                return response()->json(['message' => 'Số lượng trong kho không đủ để hủy duyệt', 'outStockItems' => $outStockItems]);
+            }
+        } else {
+            $stockEntry->update(['confirmed' => 1]);
+
+            foreach ($stockEntry->items as $item) {
+                $item->update(['confirmed' => 1]);
+            }
+            return response()->json(['message' => 'Duyệt thành công']);
+        }
+
     }
 }
