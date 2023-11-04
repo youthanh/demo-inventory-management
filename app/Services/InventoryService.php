@@ -19,10 +19,13 @@ class InventoryService {
             });
 
         if (!empty($refferenceId['stock_entry_id'])) {
-            $query->where('stock_entry_id', '<>', $refferenceId['stock_entry_id']);
+            $query->where(function($query) use ($refferenceId)  {
+                $query->where('stock_entry_id', '<>', $refferenceId['stock_entry_id']);
+                $query->orWhereNull('stock_entry_id');
+            });
         }
+        
         $result = $query->first()->quantity;
-
         return $result;
     }
 }
