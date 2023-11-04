@@ -15,7 +15,7 @@ class Product extends Model
         'code' => 'required|string|unique:products,code',
         'name' => 'required|string',
         'order' => 'nullable|string',
-        'supplier' => 'nullable"string',
+        'supplier' => 'nullable|string',
         'unit_price' => 'nullable|numeric|gte:0',
     ];
 }
