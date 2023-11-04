@@ -137,7 +137,6 @@ class StockEntryController extends Controller
         $request->validate(['confirmed' => 'required|boolean']);
         
         if (!$request->confirmed) { // Bỏ duyệt kho
-            $arrQuantity = [];
             $items = $stockEntry->items;
             $canFlag = true;
             $outStockItems = [];

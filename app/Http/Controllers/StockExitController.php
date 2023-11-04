@@ -126,4 +126,44 @@ class StockExitController extends Controller
 
         return response()->json(['message' => 'Xóa thành công']);
     }
+
+    public function confirm(Request $request, $id) {
+        $stockExit = StockExit::find($id);
+        if (!$stockExit) {
+            return response()->json(['message' => 'Phiếu không tồn tại'], 404);
+        }
+
+        $request->validate(['confirmed' => 'required|boolean']);
+        
+        if ($request->confirmed) { // Duyệt giảm kho
+            $items = $stockExit->items;
+            $canFlag = true;
+            $outStockItems = [];
+            foreach ($items as $item) {
+                $quantity = $this->inventoryService->checkInventory($item->product_id, $item->warehouse_id, ['stock_exit_id' => $stockExit->id]);
+                if ($quantity < 0) {
+                    $canFlag = false;
+                }
+                $outStockItems[] = ['product' => $item->product, 'quantityShortage' => $quantity];
+            }
+            if ($canFlag) {
+                $stockExit->update(['confirmed' => 1]);
+
+                foreach ($stockExit->items as $item) {
+                    $item->update(['confirmed' => 1]);
+                }
+                return response()->json(['message' => 'Duyệt thành công', 'outStockItems' => $outStockItems]);
+            } else {
+                return response()->json(['message' => 'Số lượng trong kho không đủ để duyệt', 'outStockItems' => $outStockItems]);
+            }
+        } else {
+            $stockExit->update(['confirmed' => 0]);
+
+            foreach ($stockExit->items as $item) {
+                $item->update(['confirmed' => 0]);
+            }
+            return response()->json(['message' => 'Hủy duyệt thành công']);
+        }
+
+    }
 }
