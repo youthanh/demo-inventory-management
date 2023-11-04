@@ -26,6 +26,7 @@ class Warehouse extends Model
             ->selectRaw('product_id')
             ->where('warehouse_id', $this->id)
             ->where('confirmed', 1)
+            ->havingRaw('COALESCE(SUM(IF(stock_exit_id IS NOT NULL, (quantity * -1), quantity)), 0) <> 0')
             ->groupBy('warehouse_id')
             ->groupBy('product_id');
         $result = $query->get();
