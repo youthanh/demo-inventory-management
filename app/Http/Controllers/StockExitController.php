@@ -39,8 +39,8 @@ class StockExitController extends Controller
         $batch = new Batch;
         $manyName = 'items';
         $validate = $this->applyValidate($stockExit->validate, ['name' => $manyName, 'validate' => $batch->validate]);
-        unset($validate[$manyName.'.*.warehouse_id']);
-        unset($validate[$manyName.'.*.date']);
+        unset($validate[$manyName . '.*.warehouse_id']);
+        unset($validate[$manyName . '.*.date']);
         $request->validate($validate);
 
         $submitedData = $stockExit->create($request->all());
@@ -52,6 +52,14 @@ class StockExitController extends Controller
                 $itemData['warehouse_id'] = $submitedData->warehouse_id;
                 $itemData['date'] = $submitedData->date;
                 $batch->create($itemData);
+            }
+            $confirmed = $stockExit->confirm($submitedData->id, 1);
+            if (empty($confirmed['success'])) { // Duyệt kho thất bại
+                $stockExit = StockExit::find($submitedData->id);
+                $stockExit->items()->delete();
+                $stockExit->delete();
+
+                return response()->json(['message' => 'Số lượng trong kho không đủ.', 'outStockItems' => $confirmed['outStockItems']], 422);
             }
             return response()->json(['message' => 'Lưu thành công', 'data' => $submitedData], 201);
         }
@@ -80,9 +88,10 @@ class StockExitController extends Controller
         if (!$stockExit) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
         }
-        if ($stockExit->confirmed) {
-            return response()->json(['message' => 'Phiếu đã duyệt. Không thể sửa!'], 422);
-        }
+        $stockExit->confirm($id, ['confirmed' => 0]);
+        // if ($stockExit->confirmed) {
+        //     return response()->json(['message' => 'Phiếu đã duyệt. Không thể sửa!'], 422);
+        // }
 
         // Validate
         $batch = new Batch;
@@ -93,14 +102,48 @@ class StockExitController extends Controller
         if ($isSuccess) {
             $stockExitItemsData = $request->input('items', []);
             if (!empty($stockExitItemsData)) {
-                $stockExit->items()->delete();
+                // $stockExit->items()->delete();
+                foreach ($stockExit->items as $item) {
+                    $item->update(['confirmed' => null]);
+                }
+                $submitedBatch = [];
                 foreach ($stockExitItemsData as $itemData) {
                     $itemData['stock_exit_id'] = $stockExit->id;
                     $itemData['warehouse_id'] = $stockExit->warehouse_id;
                     $itemData['date'] = $stockExit->date;
 
-                    $batch->create($itemData);
+                    $submitedBatch[] = $batch->create($itemData);
                 }
+                $flagCanCornfirm = true;
+                foreach ($submitedBatch as $item) {
+                    // $item->update(['confirmed' => null]);
+                    $quantity = $this->inventoryService->checkInventory($item->product_id, $item->warehouse_id, ['stock_exit_id' => $stockExit->id]);
+                    var_dump($quantity);
+                    if ($quantity < 0) {
+                        $flagCanCornfirm = false;
+                        break;
+                    }
+                }
+
+                if ($flagCanCornfirm) { // có thể duyệt
+                    $stockExit->items()->whereNull('confirmed')->delete();
+                } else {
+                    $stockExit->items()->whereNotNull('confirmed')->delete();
+                    foreach ($stockExit->items as $item) {
+                        $item->update(['confirmed' => 0]);
+                    }
+                }
+                $confirmed = $stockExit->confirm($id, 1);
+                if (empty($confirmed['success'])) { // Duyệt kho thất bại
+                    // $stockExit = StockExit::find($id);
+                    // $stockExit->items()->delete();
+                    // $stockExit->delete();
+
+                    return response()->json(['message' => 'Số lượng trong kho không đủ.', 'outStockItems' => $confirmed['outStockItems']], 422);
+                }
+            }
+            if (empty($flagCanCornfirm)) { // có thể duyệt
+                return response()->json(['message' => 'Số lượng trong kho không đủ.'], 422);
             }
             return response()->json(['message' => 'Lưu thành công', 'data' => $stockExit], 200);
         }
@@ -117,9 +160,11 @@ class StockExitController extends Controller
         if (!$stockExit) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
         }
-        if ($stockExit->confirmed) {
-            return response()->json(['message' => 'Phiếu đã duyệt. Không thể xóa!'], 422);
-        }
+        // if ($stockExit->confirmed) {
+        //     return response()->json(['message' => 'Phiếu đã duyệt. Không thể xóa!'], 422);
+        // }
+
+        $confirmed = $stockExit->confirm($id, 0);
 
         $stockExit->items()->delete();
         $stockExit->delete();
@@ -127,14 +172,15 @@ class StockExitController extends Controller
         return response()->json(['message' => 'Xóa thành công']);
     }
 
-    public function confirm(Request $request, $id) {
+    public function confirm(Request $request, $id)
+    {
         $stockExit = StockExit::find($id);
         if (!$stockExit) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
         }
 
         $request->validate(['confirmed' => 'required|boolean']);
-        
+
         if ($request->confirmed) { // Duyệt giảm kho
             $items = $stockExit->items;
             $canFlag = true;
@@ -164,6 +210,5 @@ class StockExitController extends Controller
             }
             return response()->json(['message' => 'Hủy duyệt thành công']);
         }
-
     }
 }

@@ -40,8 +40,8 @@ class StockEntryController extends Controller
         $batch = new Batch;
         $manyName = 'items';
         $validate = $this->applyValidate($stockEntry->validate, ['name' => $manyName, 'validate' => $batch->validate]);
-        unset($validate[$manyName.'.*.warehouse_id']);
-        unset($validate[$manyName.'.*.date']);
+        unset($validate[$manyName . '.*.warehouse_id']);
+        unset($validate[$manyName . '.*.date']);
         $request->validate($validate);
 
         $submitedData = $stockEntry->create($request->all());
@@ -54,6 +54,7 @@ class StockEntryController extends Controller
                 $itemData['date'] = $submitedData->date;
                 $batch->create($itemData);
             }
+            $confirmed = $stockEntry->confirm($submitedData->id, 1);
             return response()->json(['message' => 'Lưu thành công', 'data' => $submitedData], 201);
         }
         return response()->json(['message' => 'Lưu thất bại'], 500);
@@ -81,9 +82,18 @@ class StockEntryController extends Controller
         if (!$stockEntry) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
         }
-        if ($stockEntry->confirmed) {
-            return response()->json(['message' => 'Phiếu đã duyệt. Không thể sửa!'], 422);
+
+        $confirmed = $stockEntry->confirm($id, 0);
+        if (empty($confirmed['success'])) { // Bỏ duyệt thất bại
+            $response = ['message' => $confirmed['message']];
+            if (!empty($confirmed['outStockItems'])) {
+                $response['outStockItems'] = $confirmed['outStockItems'];
+            }
+            return response()->json($response, 422);
         }
+        // if ($stockEntry->confirmed) {
+        //     return response()->json(['message' => 'Phiếu đã duyệt. Không thể sửa!'], 422);
+        // }
 
         // Validate
         $batch = new Batch;
@@ -103,6 +113,8 @@ class StockEntryController extends Controller
                     $batch->create($itemData);
                 }
             }
+            $stockEntry->confirm($id, 1);
+
             return response()->json(['message' => 'Lưu thành công', 'data' => $stockEntry], 200);
         }
 
@@ -118,9 +130,18 @@ class StockEntryController extends Controller
         if (!$stockEntry) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
         }
-        if ($stockEntry->confirmed) {
-            return response()->json(['message' => 'Phiếu đã duyệt. Không thể xóa!'], 422);
+
+        $confirmed = $stockEntry->confirm($id, 0);
+        if (empty($confirmed['success'])) { // Bỏ duyệt thất bại
+            $response = ['message' => $confirmed['message']];
+            if (!empty($confirmed['outStockItems'])) {
+                $response['outStockItems'] = $confirmed['outStockItems'];
+            }
+            return response()->json($response, 422);
         }
+        // if ($stockEntry->confirmed) {
+        //     return response()->json(['message' => 'Phiếu đã duyệt. Không thể xóa!'], 422);
+        // }
 
         $stockEntry->items()->delete();
         $stockEntry->delete();
@@ -128,14 +149,15 @@ class StockEntryController extends Controller
         return response()->json(['message' => 'Xóa thành công']);
     }
 
-    public function confirm(Request $request, $id) {
+    public function confirm(Request $request, $id)
+    {
         $stockEntry = StockEntry::find($id);
         if (!$stockEntry) {
             return response()->json(['message' => 'Phiếu không tồn tại'], 404);
         }
 
         $request->validate(['confirmed' => 'required|boolean']);
-        
+
         if (!$request->confirmed) { // Bỏ duyệt kho
             $items = $stockEntry->items;
             $canFlag = true;
@@ -165,6 +187,5 @@ class StockEntryController extends Controller
             }
             return response()->json(['message' => 'Duyệt thành công']);
         }
-
     }
 }

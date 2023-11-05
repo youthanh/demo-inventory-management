@@ -26,7 +26,7 @@ return new class extends Migration
             $table->float('quantity', 8, 2, true)->default(0);
             $table->float('unit_price', 12, 3, true)->default(0);
             $table->text('note')->nullable()->default(null);
-            $table->boolean('confirmed')->default(false);
+            $table->boolean('confirmed')->nullable()->default(false);
 
             // $table->string('serial')->unique()
             //     ->nullable()
